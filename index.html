@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=0">
+    <title>Upozorenje na Raskrsnici</title>
+    <script src="https://aframe.io/releases/1.4.1/aframe.min.js"></script>
+    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+        }
+        a-scene {
+            width: 100%;
+            height: 100vh;
+        }
+    </style>
+</head>
+<body>
+    <audio id="audio-warning" autoplay >
+        <source src="https://cdn.glitch.global/3c4f4a9c-3846-4aa2-841d-c1529310fd89/luvvoice.com-20250427-603n20.mp3?v=1745784045844" type="audio/mp3">
+    </audio>
+
+    <a-scene embedded arjs="sourceType: webcam; trackingMethod: best; debugUIEnabled: false;">
+        <a-assets>
+            <a-asset-item id="tree-model" src="https://cdn.glitch.global/f500b50e-7622-4323-b0ff-d5849eed5e0e/low-poly-tree.glb"></a-asset-item>
+            <a-asset-item id="stecci-model" src="https://cdn.glitch.global/f500b50e-7622-4323-b0ff-d5849eed5e0e/stecci.glb"></a-asset-item>
+            <a-asset-item id="font" src="https://cdn.aframe.io/fonts/mozillavr.fnt"></a-asset-item>
+        </a-assets>
+
+        <a-sky color="#1A237E" material="shader: gradient; topColor: 26 35 126; bottomColor: 100 181 246"></a-sky>
+        <a-plane color="#333333" height="3.5" width="6.5" position="0 0.5 -5" opacity="0.9"></a-plane>
+
+        <!-- Upozoravajući tekst -->
+        <a-text id="warning-text" value="UPOZORENJE!\nNalazite se na raskrsnici koja povezuje cetiri vazna pravca! Putevi vode prema Tuzli, Sarajevu, Novom Sadu, a mozda i još necemu sto ne znate, ali sigurno vas ceka na putu! 🚗💨\nPre nego što krenete na svoje putovanje, dobro se najedite – jer cete imati puno kilometara pred sobom! Mozda vam zatreba energija za sve ono što vas ceka na ovom velikom raskrscu sudbina, pa iskoristite trenutak da uzivate u ukusnoj hrskavoj pizzi ili okrijepi uz dobar zalogaj. 🍕\nSrecno na putu i, tko zna, mozda cete naici na nesto nepredvidjeno!"
+                position="0 0.8 -5" align="center" color="#FF0000" width="4" font="mozillavr" shader="msdf" negate="false" animation="property: material.opacity; from: 0.5; to: 1; dur: 1000; loop: true; dir: alternate; easing: easeInOutSine"></a-text>
+
+        <!-- Poruka o grešci za audio -->
+        <a-text id="audio-error-text" value="Dobrodosli na teritoriju opstine Kladanj!" position="0 2.2 -4.9" align="center" color="#FFFF00" width="3" font="mozillavr" shader="msdf" negate="false" visible="false"></a-text>
+
+        <!-- Drveće s lijeve i desne strane -->
+        <a-entity id="tree-left" gltf-model="#tree-model" position="-3 0 -4.5" scale="0.5 0.5 0.5" animation="property: rotation; to: 0 360 0; dur: 20000; loop: true; easing: linear"></a-entity>
+        <a-entity id="tree-right" gltf-model="#tree-model" position="3 0 -4.5" scale="0.5 0.5 0.5" animation="property: rotation; to: 0 -360 0; dur: 20000; loop: true; easing: linear"></a-entity>
+
+        <!-- Stećci s lijeve i desne strane -->
+        <a-entity id="stecci-left" gltf-model="#stecci-model" position="-2.5 0.5 -4.5" scale="0.3 0.3 0.3" animation="property: material.opacity; from: 0.5; to: 1; dur: 3000; loop: true; dir: alternate; easing: easeInOutSine"></a-entity>
+        <a-entity id="stecci-right" gltf-model="#stecci-model" position="2.5 0.5 -4.5" scale="0.3 0.3 0.3" animation="property: material.opacity; from: 0.5; to: 1; dur: 3000; loop: true; dir: alternate; easing: easeInOutSine"></a-entity>
+
+        <!-- Pulsirajuće crveno svjetlo -->
+        <a-light id="warning-light" type="point" intensity="0" color="#FF0000" position="0 3 -3" animation="property: intensity; from: 0; to: 1.5; dur: 1000; loop: true; dir: alternate; easing: easeInOutQuad"></a-light>
+        <a-light type="ambient" intensity="0.6" color="#FFF"></a-light>
+
+        <!-- Gumb za ručno pokretanje audio zapisa -->
+        <a-entity id="play-audio-button"
+                  geometry="primitive: plane; height: 0.3; width: 2"
+                  material="shader: standard; color: #FFD700; metalness: 0.5; roughness: 0.2"
+                  position="0 2 -4.9"
+                  text="value: UPOZORENJE ZVUK; color: black; align: center; width: 3;"
+                  cursor="rayOrigin: mouse"
+                  visible="false"
+                  animation="property: rotation; to: 0 360 0; dur: 10000; loop: true; easing: linear"
+                  animation__click="property: material.color; to: #FFFFE0; dur: 200; startEvents: click; dir: alternate; loop: 2">
+            <a-entity id="click-particles" visible="false" click-particles></a-entity>
+        </a-entity>
+
+        <!-- Gumb za nastavak putovanja -->
+        <a-entity id="continue-button"
+                  geometry="primitive: plane; height: 0.3; width: 2"
+                  material="shader: standard; color: #1E90FF; metalness: 0.5; roughness: 0.2"
+                  position="0 1.8 -4.9"
+                  text="value: NASTAVI PUTOVANJE; color: white; align: center; width: 3;"
+                  cursor="rayOrigin: mouse"
+                  animation="property: rotation; to: 0 360 0; dur: 10000; loop: true; easing: linear"
+                  animation__click="property: material.color; to: #87CEEB; dur: 200; startEvents: click; dir: alternate; loop: 2">
+            <a-entity id="continue-click-particles" visible="false" click-particles></a-entity>
+        </a-entity>
+
+        <a-entity id="stars-container" falling-stars></a-entity>
+
+        <a-camera position="0 1.6 0">
+            <a-cursor color="#FF0000" radius="0.05" position="0 0 -1"></a-cursor>
+        </a-camera>
+    </a-scene>
+
+    <script>
+        // Audio elementi
+        let warningAudio = document.getElementById('audio-warning');
+        let isAudioPlaying = false;
+        let audioContext = null;
+
+        // Funkcija za otključavanje AudioContexta
+        function unlockAudioContext() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioContext.state === 'suspended') {
+                audioContext.resume().then(() => {
+                    console.log('AudioContext otključan');
+                    if (!isAudioPlaying) {
+                        playAudio(warningAudio);
+                    }
+                }).catch(err => {
+                    console.error('Greška pri otključavanju AudioContexta:', err);
+                });
+            }
+        }
+
+        // Funkcije za upravljanje audio zapisima
+        function stopAllAudio() {
+            if (warningAudio) {
+                warningAudio.pause();
+                warningAudio.currentTime = 0;
+            }
+            isAudioPlaying = false;
+        }
+
+        function playAudio(audioElement) {
+            if (!audioElement || !audioElement.src) {
+                console.warn('Audio element nije definiran ili nema izvor.');
+                document.getElementById('audio-error-text').setAttribute('visible', 'true');
+                return;
+            }
+            stopAllAudio();
+            audioElement.play().then(() => {
+                isAudioPlaying = true;
+                document.getElementById('play-audio-button').setAttribute('visible', 'false');
+                document.getElementById('audio-error-text').setAttribute('visible', 'false');
+            }).catch(error => {
+                console.warn('Reprodukcija nije uspjela:', error);
+                document.getElementById('play-audio-button').setAttribute('visible', 'true');
+                document.getElementById('audio-error-text').setAttribute('visible', 'true');
+            });
+        }
+
+        // Praćenje stanja audio zapisa
+        warningAudio.addEventListener('loadedmetadata', () => {
+            console.log('Audio metapodaci učitani');
+        });
+        warningAudio.addEventListener('canplay', () => {
+            console.log('Audio spreman za reprodukciju');
+            if (!isAudioPlaying) {
+                playAudio(warningAudio);
+            }
+        }, { once: true });
+        warningAudio.addEventListener('canplaythrough', () => {
+            console.log('Audio potpuno učitan');
+            if (!isAudioPlaying) {
+                playAudio(warningAudio);
+            }
+        }, { once: true });
+        warningAudio.addEventListener('play', () => {
+            isAudioPlaying = true;
+            console.log('Audio započeo reprodukciju');
+        });
+        warningAudio.addEventListener('ended', () => {
+            isAudioPlaying = false;
+            console.log('Audio završio reprodukciju');
+        });
+        warningAudio.addEventListener('error', (e) => {
+            console.error('Greška pri učitavanju audio datoteke:', e);
+            document.getElementById('play-audio-button').setAttribute('visible', 'true');
+            document.getElementById('audio-error-text').setAttribute('visible', 'true');
+        });
+
+        // Pokušaj automatskog pokretanja s provjerom readyState
+        window.addEventListener('load', () => {
+            unlockAudioContext();
+            const checkAudioReady = setInterval(() => {
+                if (warningAudio.readyState >= 3) { // HAVE_FUTURE_DATA
+                    clearInterval(checkAudioReady);
+                    playAudio(warningAudio);
+                }
+            }, 100);
+            setTimeout(() => clearInterval(checkAudioReady), 5000); // Prekini nakon 5 sekundi ako ne uspije
+        });
+
+        // Pokreni audio na prvi klik/dodir i otključaj AudioContext
+        document.body.addEventListener('click', () => {
+            unlockAudioContext();
+            if (!isAudioPlaying) {
+                playAudio(warningAudio);
+            }
+        }, { once: true });
+
+        // Gumb za ručno pokretanje
+        document.getElementById('play-audio-button').addEventListener('click', () => {
+            unlockAudioContext();
+            playAudio(warningAudio);
+        });
+
+        // Gumb za nastavak putovanja
+        document.getElementById('continue-button').addEventListener('click', () => {
+            document.getElementById('warning-text').setAttribute('value', 'SRETNO NA PUTOVANJU!\nKrenite hrabro prema Tuzli, Sarajevu ili Novom Sadu! Ne zaboravite ponijeti pizzu za put! 🍕\nAvantura vas ceka!');
+            document.getElementById('warning-text').setAttribute('color', '#00FF00');
+        });
+
+        // Komponenta za padajuće zvijezde
+        AFRAME.registerComponent('falling-stars', {
+            init: function () {
+                let scene = document.querySelector('#stars-container');
+                for (let i = 0; i < 15; i++) {
+                    let star = document.createElement('a-sphere');
+                    star.setAttribute('radius', '0.05');
+                    star.setAttribute('material', 'color: #FFD700; opacity: 0.8');
+                    star.setAttribute('position', `${(Math.random() - 0.5) * 8} ${Math.random() * 3 + 2} -4`);
+                    scene.appendChild(star);
+                    this.animateStar(star);
+                }
+            },
+            animateStar: function (star) {
+                function fall() {
+                    let startY = Math.random() * 3 + 2;
+                    let duration = Math.random() * 3000 + 2000;
+                    star.setAttribute('position', `${(Math.random() - 0.5) * 8} ${startY} -4`);
+                    star.setAttribute('animation', {
+                        property: 'position',
+                        to: `${(Math.random() - 0.5) * 8} -1 -4`,
+                        dur: duration,
+                        easing: 'linear',
+                        loop: false
+                    });
+                    star.setAttribute('animation__fade', {
+                        property: 'material.opacity',
+                        to: 0,
+                        dur: duration,
+                        easing: 'linear',
+                        loop: false
+                    });
+                    setTimeout(() => fall(), duration);
+                }
+                fall();
+            }
+        });
+
+        // Komponenta za čestice na klik
+        AFRAME.registerComponent('click-particles', {
+            init: function () {
+                this.el.addEventListener('click', () => {
+                    this.el.setAttribute('visible', 'true');
+                    let scene = this.el;
+                    scene.innerHTML = '';
+                    for (let i = 0; i < 10; i++) {
+                        let particle = document.createElement('a-sphere');
+                        particle.setAttribute('radius', '0.02');
+                        particle.setAttribute('material', 'color: #FFFFFF; opacity: 0.8');
+                        particle.setAttribute('position', `${(Math.random() - 0.5) * 0.5} ${(Math.random() - 0.5) * 0.5} 0.01`);
+                        scene.appendChild(particle);
+                        this.animateParticle(particle);
+                    }
+                    setTimeout(() => {
+                        scene.innerHTML = '';
+                        this.el.setAttribute('visible', 'false');
+                    }, 1000);
+                });
+            },
+            animateParticle: function (particle) {
+                let duration = 800;
+                particle.setAttribute('animation', {
+                    property: 'position',
+                    to: `${(Math.random() - 0.5) * 1} ${(Math.random() - 0.5) * 1} 0.01`,
+                    dur: duration,
+                    easing: 'easeOutQuad'
+                });
+                particle.setAttribute('animation__fade', {
+                    property: 'material.opacity',
+                    to: 0,
+                    dur: duration,
+                    easing: 'linear'
+                });
+            }
+        });
+
+        // Inicijalizacija komponenti
+        document.querySelector('#stars-container').setAttribute('falling-stars', '');
+        document.querySelector('#play-audio-button').querySelector('#click-particles').setAttribute('click-particles', '');
+        document.querySelector('#continue-button').querySelector('#continue-click-particles').setAttribute('click-particles', '');
+    </script>
+</body>
+</html>
